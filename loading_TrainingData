@@ -1,0 +1,50 @@
+import scipy.io
+import numpy as np
+import os
+import pylab as pl
+import math
+
+
+# loading the data
+def loadingData(classType):
+    path = ('C:\Users\Weizhi\Desktop\Filter B')    
+   # classType = 'blood'
+    classTypepath = os.listdir('C:\Users\Weizhi\Desktop\Filter B\\' + classType)
+    m = len(classTypepath)
+    index = np.arange(m)
+    np.random.shuffle(index)
+    
+   # for training data, 60% data
+    indexTraining = int(math.ceil(m*0.6))
+    
+    obj_train = np.zeros((indexTraining),dtype=np.object)    
+    obj_test = np.zeros((int(m-indexTraining)),dtype=np.object)          
+    for i in range(indexTraining):
+            
+        data = scipy.io.loadmat(path+'/'+ classType +'/'+classTypepath[index[i]])
+        Data = data['DataAC']
+        # store the data as cell 
+        obj_train[i] = Data
+      
+        # get the testing data
+        
+    for i in range(int(m-indexTraining)):
+            
+        data = scipy.io.loadmat(path+'/'+ classType +'/'+classTypepath[index[indexTraining+i]])
+        Data = data['DataAC']
+        obj_test[i] = Data
+            
+                    
+    return (obj_train,obj_test)
+        
+             
+             
+blood_Train, blood_Test = loadingData('blood')   
+fullBurn_Train, fullBurn_Test = loadingData('full section injury')
+health_Train, health_Test = loadingData('healthy skin')
+partial_Train, partial_Test = loadingData('partial section injury')
+hyper_Train, hyper_Test = loadingData('hyperermia')
+woundBed_Train, woundBed_Test = loadingData('healthy wound bed')
+
+#define variable
+title = ['Health Skin','Wound Bed','Hyperermia','Full Insection Injury','Partial Insection Injury','blood']
