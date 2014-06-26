@@ -1,0 +1,22 @@
+
+
+def compute_error(x,y,model):
+    error = 0
+    yfit = model.predict(x)
+    m = len(yfit)
+    for i in range(m):
+        if yfit[i] != y[i]:
+            error = error + 1
+    return (error)/m
+
+compute_error(X_test,y_test,df)    
+
+# learning curve with different size of data
+
+sizes = np.linspace(100,len(X_train),100).astype(int)
+crossval_error = np.zeros(len(sizes))
+train_error = np.zeros(len(sizes))
+for i, size in enumerate(sizes):
+    df= df.fit(X_train[:size,:],y_train[:size])
+    crossval_error[i] = compute_error(X_test,y_test,df)    
+    train_error[i] = compute_error(X_train[:size,:],y_train[:size],df)
