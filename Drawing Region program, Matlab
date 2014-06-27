@@ -2,7 +2,7 @@
 % Select n characteristics (basiclly now there are Health Tissue, ShadowBurn, MediumBurn, DeepBurn and Blood) 
 % save the training data into five files or less. 
 % By Weizhi Li
-% Email: li@spectralmd.com
+% Email: weizhili2014@gmail.com
 % The right one 04/11/2014
 clear all;
 clc;
