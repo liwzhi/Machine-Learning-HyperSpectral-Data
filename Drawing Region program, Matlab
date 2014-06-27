@@ -1,14 +1,14 @@
 %% Ground Truth
 % Select n characteristics (basiclly now there are Health Tissue, ShadowBurn, MediumBurn, DeepBurn and Blood) 
 % save the training data into five files or less. 
-% By Weizhi Li 
+% By Weizhi Li
 % Email: li@spectralmd.com
 % The right one 04/11/2014
 clear all;
 clc;
 close all;
 
-Dic = 'C:\Users\Valued Customer\Desktop\4.22.14 ROI drawing Pictures_Eric\Pig_2\Filter B\WS 2A\3_1st Cut\1A';
+Dic = 'K:\1st day MSI_G1_Pig1\1stDay_Pig1_MSI\1stday\1A_burn_TIFF\Images\Pig1_1A_1stCut_1';
 cd (Dic)
 listing = dir;
 
@@ -77,22 +77,22 @@ FrameMatrix_DownSampleNew = zeros(size(RawData,1),size(RawData,2),8);
 % filter B: [one-475 Two-532 Three-560 Four-578 Five-726 Six-860 Seven-940  Eight-1064]
 % old filter x = [450 515 542 620 669 750 860 972];
 
-FrameMatrix_DownSampleNew(:,:,1) = FrameMatrix_DownSampleTransform(:,:,2);
+FrameMatrix_DownSampleNew(:,:,1) = FrameMatrix_DownSampleTransform(:,:,1);
 
 
-FrameMatrix_DownSampleNew(:,:,2) = FrameMatrix_DownSampleTransform(:,:,3);
+FrameMatrix_DownSampleNew(:,:,2) = FrameMatrix_DownSampleTransform(:,:,2);
 
-FrameMatrix_DownSampleNew(:,:,3) = FrameMatrix_DownSampleTransform(:,:,4);
+FrameMatrix_DownSampleNew(:,:,3) = FrameMatrix_DownSampleTransform(:,:,3);
 
-FrameMatrix_DownSampleNew(:,:,4) = FrameMatrix_DownSampleTransform(:,:,5);
+FrameMatrix_DownSampleNew(:,:,4) = FrameMatrix_DownSampleTransform(:,:,4);
 
-FrameMatrix_DownSampleNew(:,:,5) = FrameMatrix_DownSampleTransform(:,:,6);
+FrameMatrix_DownSampleNew(:,:,5) = FrameMatrix_DownSampleTransform(:,:,5);
 
-FrameMatrix_DownSampleNew(:,:,6) = FrameMatrix_DownSampleTransform(:,:,7);
+FrameMatrix_DownSampleNew(:,:,6) = FrameMatrix_DownSampleTransform(:,:,6);
 
-FrameMatrix_DownSampleNew(:,:,7) = FrameMatrix_DownSampleTransform(:,:,1);
+FrameMatrix_DownSampleNew(:,:,7) = FrameMatrix_DownSampleTransform(:,:,8);
 
-FrameMatrix_DownSampleNew(:,:,8) = FrameMatrix_DownSampleTransform(:,:,8);
+FrameMatrix_DownSampleNew(:,:,8) = FrameMatrix_DownSampleTransform(:,:,7);
 %%
 
 FrameMatrixAC = (FrameMatrix_DownSampleNew  - repmat(mean(FrameMatrix_DownSampleNew ,1),size(FrameMatrix_DownSampleNew ,1),1));
@@ -119,26 +119,30 @@ FrameMatrix_DownSampleNew(X(i),Y(i),:) = 0;
 FrameMatrixAC(X(i),Y(i),:) = 0;
 end
 
+DataFull = zeros(size(X1,1),8);
+DataFull2 = zeros(size(X1,1),8);
+
 for i = 1:size(X1,1)
-   a = [X1(i) Y(i)];
-           DataFull(i,:) = reshape(FrameMatrix_DownSampleNew(a(1,1),a(1,2),:),1,8);
-           DataFull2(i,:) = reshape(FrameMatrixAC(a(1,1),a(1,2),:),1,8);
+   a = [X1(100) Y1(100)];
+   DataFull(i,:) = reshape(FrameMatrix_DownSampleNew(a(1,1),a(1,2),:),1,8);
+   DataFull2(i,:) = reshape(FrameMatrixAC(a(1,1),a(1,2),:),1,8);
            
 end
 
        ClassName1 = 'Full Data';
-        ClassName1=num2str(strcat(ClassName1,'--',fileSave(27:81-28)));
+        ClassName1=num2str(strcat(ClassName1,'--',Dic(end - 15:end)));
       save(ClassName1,'DataFull')
+      
       NameClassOne = num2str(strcat(ClassName1,'.csv'));
       csvwrite(NameClassOne,DataFull)
       
        ClassName2 = 'Full AC Data';
-        ClassName2=num2str(strcat(ClassName2,'--',fileSave(27:81-28)));
+        ClassName2=num2str(strcat(ClassName2,'--',Dic(end - 15:end)));
       save(ClassName2,'DataFull2')
       NameClasstwo = num2str(strcat(ClassName2,'.csv'));
       csvwrite(NameClasstwo,DataFull2)
       
-
+%% color iamge for plotting
 figure;imshow(Image)
 
 
@@ -152,10 +156,10 @@ ClassNumber = 0;
 numberClass = 0;
 while(i== 'Y')
   ClassIndex = 1 + ClassIndex;
-    Classes = {'1-healthy Skin ';' 2-healthy wound bed ';' 3-partial section injury ';' 4-full section injury  ';'5-hyperemia';'6-blood'};
+    Classes = {'1-healthy Skin ';' 2-healthy wound bed ';' 3-Less Than 1mm ';' 4-Greater Than 1mm  ';'5-hyperemia';'6-blood'};
 % data = ['Allison Jones';'Development  ';'Phoenix      '];
 
-disp '1-healthy Skin, 2-healthy wound bed, 3-partial section injury, 4-full section injury, 5-hyperemia, 6-blood '
+disp '1-healthy Skin, 2-healthy wound bed, 3-Less Than 1mm , 4-Greater Than 1mm, 5-hyperemia, 6-blood '
 disp 'Pleae enter the number associated with the class you want to draw:    '
 n = input('');
 ClassesName = Classes(n,:)
@@ -218,8 +222,8 @@ J3 = input(prompt,'s');
   j = J3;
   
   
-  ClassName=num2str(cell2mat(strcat(ClassesName,fileSave(27:81-28))));
-  ClassNameAC=num2str(cell2mat(strcat(ClassesNameAC,'AC',fileSave(27:81-28))));
+  ClassName=num2str(cell2mat(strcat(ClassesName,'__',Dic(end - 15:end))));
+  ClassNameAC=num2str(cell2mat(strcat(ClassesNameAC,'AC',Dic(end - 15:end))));
    NumberClass = size(PositionSave,2);
    numberClass = numberClass + NumberClass;
    Sum = 0;
@@ -317,10 +321,10 @@ figure;imagesc(Image2)
 
 %% Labeling the classes on the color-coded mask
 for i = 1: ClassIndex
-     Classes = {'1-healthy Skin ';' 2-healthy would bed ';' 3-partial section injury ';' 4-full section injury  ';'5-hyperemia';'6-blood'};
+     Classes = {'1-healthy Skin ';' 2-healthy would bed ';' 3-Less Than 1mm ';' 4-Greater Than 1mm  ';'5-hyperemia';'6-blood'};
 % data = ['Allison Jones';'Development  ';'Phoenix      '];
 
-     disp '1-healthy Skin, 2-healthy would bed, 3-partial section injury, 4-full section injury, 5-hyperemia, 6-blood '
+     disp '1-healthy Skin, 2-healthy would bed,  3-Less Than 1mm ; 4-Greater Than 1mm  , 5-hyperemia, 6-blood '
     disp 'Pleae enter number and then click the color on teh image to label that class.'
     n = input('');
     ClassesName = Classes(n,:)
@@ -334,4 +338,4 @@ end
 Image0 = getframe(gcf);
 imwrite(Image0.cdata, 'Labled color image.jpg');     
  close all; 
-%  end
+% end
