@@ -1,7 +1,8 @@
-f =  open('C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Test\\submission_example.csv', 'wt')
+f =  open('C:\Users\SpectralMD2\Desktop\Data Kaggle\Test\\submission_example.csv', 'wb')
 try:
-    writer = csv.writer(f, delimiter=" ",lineterminator='\n')
+    writer = csv.writer(f, delimiter=",",lineterminator='\n')
+    writer.writerow(['Id','Probability'])
     for row in arange(len(data)):
-        writer.writerow((data[row,:]))
+        writer.writerow((data[row,0].astype(int), data[row,1]))
 finally:
     f.close()
