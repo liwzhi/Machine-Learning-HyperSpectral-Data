@@ -1,0 +1,231 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jun 30 20:41:21 2014
+
+@author: Weizhi
+"""
+
+
+import csv
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import cross_validation 
+def OpenCVS(path):
+    f = open(path,'rb')
+    reader = csv.reader(f)
+    labels = []
+    for row in reader:
+        labels.append(row)
+    f.close()
+    data = np.array(labels)
+    return data
+    
+GroupPath = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_labels.csv'
+train_SBM = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_SBM.csv'
+train_FNC = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_FNC.csv'
+
+group = OpenCVS(GroupPath)
+SBM = OpenCVS(train_SBM)
+FNC = OpenCVS(train_FNC)
+
+
+## training the model
+Group = group[1:,1:]
+feature = np.column_stack((SBM[1:,1:],FNC[1:,1:]))
+
+sh = feature.shape
+feature= np.array([float(i) for i in feature.ravel() ]).reshape(sh)
+Group_test = Group.astype(np.int)
+
+#from sklearn import cross_validation
+#from sklearn.linear_model import SGDClassifier
+
+def simple_crit_func(model,feat_sub,group):
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(feat_sub,group,test_size=0.4,random_state=0)
+    model.fit(X_train,y_train)
+    Correct = model.score(X_test,y_test)
+    return Correct
+#
+
+def seq_forw_select(clf,features, group,max_k, print_steps=True):
+
+# Initialization
+ 
+    k = 0
+    Len = features.shape[1]
+    feat_sub = []
+    result = []
+    if max_k > Len:
+        max_k = Len
+        result = np.arange(len)
+        return np.arange(Len)
+    else:
+     
+        index = np.arange(Len)
+        np.random.shuffle(index)
+        # initial values
+        crit_func_max = simple_crit_func(clf,features[:,[index[1]]],group)
+        # store the results
+        result.append(index[1])
+     
+        for x in range(Len):
+             
+            feat_sub.append(index[x])
+            # feedback, forward algorithms
+            crit_func_eval = simple_crit_func(clf,features[:,feat_sub],group)
+     
+            if crit_func_eval >crit_func_max:
+                crit_func_max = crit_func_eval
+                result.append(index[x])
+                if print_steps:
+                    print ('Accuary rate: %f, add feature: %d',crit_func_eval,index[x])
+             
+            feat_sub.pop()
+            k = len(result)
+            if k == max_k:
+                break;
+        
+    return (result,crit_func_max)
+ 
+ 
+
+
+
+from sklearn.linear_model import SGDClassifier
+from sklearn import svm
+clf_SVM = svm.SVC(kernel='linear', probability=True,)
+res_forw_1,correct = seq_forw_select(clf_SVM,features=feature,group=Group_test.ravel(),max_k=410,print_steps=True)
+
+clf = SGDClassifier(alpha=0.1,n_iter=1000)
+#
+res_forw_2,correct = seq_forw_select(clf,features=feature,group=Group_test.ravel(),max_k=410,print_steps=True)
+
+from sklearn import tree, neighbors
+knn = neighbors.KNeighborsClassifier(15,weights='distance')
+res_forw_3,correct = seq_forw_select(knn,features=feature,group=Group_test.ravel(),max_k=300,print_steps=True)
+
+## tree
+res_forw = res_forw_1 +res_forw_2 + res_forw_3
+
+res_forw = list(set(res_forw))
+
+
+## ROC curve plot
+import pylab as pl
+from sklearn.metrics import roc_curve, auc
+
+X_train, X_test, y_train, y_test = cross_validation.train_test_split(feature[:,res_forw],Group_test.ravel(),test_size=0.4,random_state=0)
+
+# def the model
+
+def modeling(model,X_train,X_test,y_train,y_test):
+    clf = model.fit(X_train,y_train)
+    probas_=clf.predict_proba(X_test)
+    error = clf.score(X_test,y_test)
+    
+    print "The CV accurate rate is: %f" % error
+    group = y_test.astype(np.int)
+
+    fpr, tpr, thresholds = roc_curve(group,probas_[:,1],pos_label=1)
+    
+    roc_auc = auc(fpr,tpr)
+    print "Area under the ROC curve : %f" % roc_auc
+    
+    pl.clf()
+    pl.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+    pl.plot([0, 1], [0, 1], 'k--')
+    pl.xlim([0.0, 1.0])
+    pl.ylim([0.0, 1.0])
+    pl.xlabel('False Positive Rate')
+    pl.ylabel('True Positive Rate')
+    pl.title('Receiver operating characteristic example')
+    pl.legend(loc="lower right")
+    pl.show()
+    return (clf,probas_)
+
+from sklearn import svm
+clf = svm.SVC(kernel='linear', probability=True,)
+clf,probas = modeling(clf,X_train,X_test,y_train,y_test)
+
+
+test_SBM = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Test\\test_SBM.csv'
+test_FNC = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Test\\test_FNC.csv'
+
+test_SBM = OpenCVS(test_SBM)
+test_FNC = OpenCVS(test_FNC)
+
+
+test_feature = np.column_stack((test_SBM[1:,1:],test_FNC[1:,1:]))
+
+sh = test_feature.shape
+feature= np.array([float(i) for i in test_feature.ravel() ]).reshape(sh)
+
+
+
+probas_test = clf.predict_proba(test_feature[:,res_forw])
+
+# get the outout
+
+sh = test_SBM[1:,0].shape
+test_SBM= np.array([int(i) for i in test_SBM[1:,0].ravel() ]).reshape(sh)
+#
+#
+#  
+data = np.column_stack((test_SBM,probas_test[:,:1]))
+
+data1 = np.array([data[:,0],data[:,1]], dtype=[int,float])
+#title = ['ID','Probability']
+#data1 = np.vstack((title,data))
+#
+#
+#sh = data1.shape
+#data1= np.array([float(i) for i in data1.ravel[1:,1:] ]).reshape(sh)
+#
+#np.savetxt("C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Test\\submission_example.csv", data, delimiter=",")
+
+
+
+
+
+
+
+
+
+
+
+
+
+#import csv
+#def OpenCVS(path):
+#    f = open(path,'rb')
+#    reader = csv.reader(f)
+#    labels = []
+#    for row in reader:
+#        labels.append(row)
+#    f.close()
+#    data = np.array(labels)
+#    return data
+#    
+#GroupPath = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_labels.csv'
+#train_SBM = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_SBM.csv'
+#train_FNC = 'C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Train\\train_FNC.csv'
+#
+#group = OpenCVS(GroupPath)
+#SBM = OpenCVS(train_SBM)
+#FNC = OpenCVS(train_FNC)
+#
+#
+### training the model
+#Group = group[1:,1:]
+#feature = np.column_stack((SBM[1:,1:],FNC[1:,1:]))
+#sh = feature.shape
+#feature= np.array([float(i) for i in feature.ravel() ]).reshape(sh)
+#
+#
+#Group_test = Group.astype(np.int)
+#
+#res_forw = seq_forw_select(clf,features=feature,group=Group,max_k=30,print_steps=True)
+
+
+
+
