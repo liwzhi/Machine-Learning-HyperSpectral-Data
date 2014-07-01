@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jun 30 20:41:21 2014
+
+@author: Weizhi
+"""
+
+import numpy as np
+#from sklearn import cross_validation
+#from sklearn.linear_model import SGDClassifier
+
+def simple_crit_func(model,feat_sub,group):
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(feat_sub,group,test_size=0.4,random_state=0)
+    model.fit(X_train,y_train)
+    Correct = model.score(X_test,y_test)
+    return Correct
+#
+
+def seq_forw_select(clf,features, group,max_k, print_steps=True):
+
+# Initialization
+ 
+    k = 0
+    Len = features.shape[1]
+    feat_sub = []
+    result = []
+    if max_k >= Len:
+        max_k = Len
+        result = np.arange(len)
+    # return np.arange(Len)
+    else:
+     
+        index = np.arange(Len)
+        np.random.shuffle(index)
+        # initial values
+        crit_func_max = simple_crit_func(clf,features[:,[index[1]]],group)
+        # store the results
+        result.append(index[1])
+     
+        for x in range(Len):
+             
+            feat_sub.append(index[x])
+            # feedback, forward algorithms
+            crit_func_eval = simple_crit_func(clf,features[:,feat_sub],group)
+     
+            if crit_func_eval >crit_func_max:
+                crit_func_max = crit_func_eval
+                result.append(index[x])
+                if print_steps:
+                    print ('Accuary rate: %f, add feature: %d',crit_func_eval,index[x])
+             
+            feat_sub.pop()
+            k = len(result)
+            if k == max_k:
+                break;
+        
+    return result
+ 
+ 
+
+
+
+from sklearn import cross_validation
+from sklearn import datasets
+from sklearn.linear_model import SGDClassifier
+
+
+iris = datasets.load_iris()
+X = iris.data
+
+y = iris.target
+
+clf = SGDClassifier(alpha=0.01,n_iter=100)
+
+Correct = simple_crit_func(clf,X,y)
+print Correct
+
+ 
+res_forw = seq_forw_select(clf,features=X,group=y,max_k=3,print_steps=True)
+
+
+
+
+
+
+
+
+
