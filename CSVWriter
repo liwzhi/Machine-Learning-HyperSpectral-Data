@@ -1,0 +1,7 @@
+f =  open('C:\Users\Weizhi\Desktop\Volumes\Feature Selection\Test\\submission_example.csv', 'wt')
+try:
+    writer = csv.writer(f, delimiter=" ",lineterminator='\n')
+    for row in arange(len(data)):
+        writer.writerow((data[row,:]))
+finally:
+    f.close()
