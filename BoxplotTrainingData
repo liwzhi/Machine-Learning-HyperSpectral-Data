@@ -1,0 +1,36 @@
+title = ['Health Skin','Wound Bed','Hyperermia','Full Insection Injury','Partial Insection Injury','blood']
+
+# plot the data, do the exploreable
+pl.close('all')
+def dataplot(Data,wavelength):
+    NameCase = ['FullBurn','partial','blood','hy','health','woundbed'] 
+    Wavelength = ['420 nm', '542 nm','581 nm', '601 nm', '726 nm', '800 nm','971 nm','860 nm']
+    name = 'case'
+    for j in range(len(Data)):
+            dataClass = Data[j]
+            m = len(dataClass)
+            s = NameCase[j]
+            Name = []            
+            for i in range(m):
+                Name.append(name + str(i+1))
+                data = []
+                pl.figure(j+3)
+                for i in range(m):
+                    dataa = dataClass[i]
+                    data.append(dataa.T[:][wavelength])
+            
+            pl.boxplot(data)
+            pl.xticks(range(1,m+1),Name,rotation = 15)
+            pl.xlabel('Name of File')
+            pl.ylabel('STD & Mean')
+            pl.title('Boxplot of Training Data wavelength %s, %s' %(s,Wavelength[wavelength-1]) )
+     
+FullBurn_Data = np.concatenate((fullBurn_Train,fullBurn_Test))
+partial_Data = np.concatenate((partial_Train, partial_Test))
+blood_Data = np.concatenate((blood_Train, blood_Test))
+hy_Data = np.concatenate((hyper_Train,hyper_Test))        
+health_Data = np.concatenate((health_Train, health_Test))
+woundbed_Data = np.concatenate((woundBed_Train,woundBed_Test))
+
+Data = [FullBurn_Data,partial_Data,blood_Data,hy_Data,health_Data,woundbed_Data]
+dataplot(Data,wavelength = 2)
