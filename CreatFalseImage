@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 09 16:26:20 2014
+
+@author: SpectralMD2
+"""
+import numpy as np
+import pylab as pl
+def modelTraining(model,TestData):
+
+    result = model.predict(TestData)
+
+    return result
+
+
+
+# find the mask
+
+def indexFinding(output,Shape):
+
+    ind_0 = np.argwhere(output==0)
+    
+    ind_1 = np.argwhere(output==1)
+    
+    ind_2 = np.argwhere(output==2)
+    
+    ind_3 = np.argwhere(output==3)
+    
+    ind_4 = np.argwhere(output==4)
+    
+    ind_5 = np.argwhere(output==5)
+    
+    output = np.zeros((len(output)))
+    
+    output[ind_0] = 140
+    
+    output[ind_1] = 110
+    
+    output[ind_2] = 90
+    
+    output[ind_3] = 30
+    
+    output[ind_4] = 70
+    
+    output[ind_5] = 8
+    
+    Output = np.reshape(output,Shape)
+    
+    pl.figure()
+    
+    pl.imshow(Output)
+    
+    pl.colorbar()
+    
+    return output
