@@ -1,0 +1,46 @@
+print(__doc__)
+
+from time import time
+import pylab as pl
+
+from sklearn.datasets import fetch_olivetti_faces
+from sklearn.ensemble import ExtraTreesClassifier
+
+# Number of cores to use to perform parallel fitting of the forest model
+
+n_jobs = 1
+
+# loading the faces dataset
+data = fetch_olivetti_faces()
+
+X = data.images.reshape((len(data.images),-1))
+y = data.target
+
+#mask = y<5
+
+
+
+# build a forest and compute the pixel importance
+
+print("Fitting Extraclassifier on faces data with %d cores" % n_jobs)
+
+t0 = time()
+
+forest = ExtraTreesClassifier(n_estimators = 1000,
+                              max_features = 128,
+                              n_jobs = n_jobs,
+                              random_state =0)
+forest.fit(X,y)
+
+print("Done is %0.4fs" %(time()-t0))
+
+importance = forest.feature_importances_
+
+importance = importance.reshape(data.images[0].shape)
+
+
+# plot pixel importance
+
+pl.matshow(importance,cmap = pl.cm.hot)
+pl.title("Pixel importances with forests of trees")
+pl.show()
