@@ -1,0 +1,51 @@
+"""
+Created on Wed Jul 16 10:08:18 2014
+
+@author: SpectralMD2
+"""
+
+
+from copy import deepcopy
+from sklearn import cross_validation
+import numpy as np
+
+def criterion_func(model,feat_sub,group):
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(feat_sub,group,test_size = 0.4, random_stat =0 )
+    model.fit(X_train,y_train)
+    correct = model.score(X_test,y_test)
+    return correct
+
+
+def seq_back_selec(model,features, group, max_k,criterion_func,print_steps=True):
+    feat_sub = deepcopy(features)
+    k = len(feat_sub)
+    i = 0
+    
+    if max_k>k:
+        print "The maximum feature is greater than number of features"
+        max_k = k
+        result = np.arange(k)
+        return result
+    
+    else:
+        
+        if print_steps:
+            print('\nExclusion from feature subset',feat_sub)
+        
+        worst_feat = len(feat_sub)-1
+        worst_feat_val = feat_sub[worst_feat]
+        crit_func_max = criterion_func(model,feat_sub[:-1],group)
+        
+        for i in reversed(range(0,len(feat_sub)-1)):
+            crit_func_eval = criterion_func(model,feat_sub[:i] + feat_sub[i+1:],group)
+            if crit_func_eval > crit_func_max:
+                worst_feat = i
+                crit_func_max = crit_func_eval
+                worst_feat_val = feat_sub[worst_feat]
+        del feat_sub[worst_feat]
+        if print_steps:
+            print('exclude: {} -> feature subsets'.format(worst_feat_val,feat_sub))
+        k = len(feat_sub)
+        if k== max_k:
+            break
+    return feat_sub
