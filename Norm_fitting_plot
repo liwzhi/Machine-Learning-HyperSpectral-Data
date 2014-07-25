@@ -1,0 +1,20 @@
+
+
+pl.figure()
+from scipy.stats import norm
+Data = hy_train_mix
+for i in range(8):
+    
+    num = i
+    mu = np.mean(Data[:,num])
+    std = np.std(Data[:,num])
+    fit = norm.pdf(Data[:,num], np.mean(Data[:,num]), np.std(Data[:,num]))  #this is a fitting indeed
+  
+    pl.subplot(2,4,i)
+    pl.plot(Data[:,num],fit,'-o',label = 'Gaussian Fitting')
+    pl.hist(Data[:,num],normed=True,label='Hist of raw data')
+    
+    title = "hy %s, fit: mu = %.2f,  std = %.2f" % (Wavelength[num],mu, std)
+    pl.title(title)
+    pl.legend(loc = 'top right',numpoints=1)
+    pl.show()
