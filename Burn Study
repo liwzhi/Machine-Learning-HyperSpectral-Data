@@ -1,0 +1,133 @@
+"""
+Created on Tue Jul 22 23:05:18 2014
+
+@author: Weizhi
+"""
+#Label - Target variable that indicates if an ad was clicked (1) or not (0).
+#I1-I13 - A total of 13 columns of integer features (mostly count features).
+#C1-C26 - A total of 26 columns of categorical features. The values of these features have been hashed onto 32 bits for anonymization purposes. 
+
+import pandas as pd
+colunm = ['420 nm','515 nm','542 nm','629 nm','669 nm', '750 nm','860 nm','972 nm']
+#%% health
+A1_health = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/SPT/1ALL/Images/2013-11-13_10.42.10/1-healthy Skin AC3-11-13_10.42.10.csv')
+A1_health.columns = colunm
+A1_1hr = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/SPT/1A1hr/Images/2013-11-13_11.19.14/1-healthy Skin AC3-11-13_11.19.14.csv')
+A1_1hr.columns = colunm
+
+
+
+
+B2_health = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/DPT/2CBurn/Images/2013-11-13_12.48.08/1-healthy Skin AC3-11-13_12.48.08.csv')
+B2_health.columns = colunm
+
+#%% SPT
+B1_SPT = pd.read_csv('C:\\Users\\Weizhi\\Desktop\November ROI Drawings_Rachit\\SPT\\1B\Images\\2013-11-13_09.59.28/1-healthy Skin AC3-11-13_09.59.28.csv')
+B1_SPT.columns = colunm
+B1_1hr = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/SPT/1B1hr/Images/2013-11-13_10.48.24/1-healthy Skin AC3-11-13_10.48.24.csv')
+B1_1hr.columns = colunm
+
+C1_SPT = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/SPT/1C/Images/2013-11-13_10.08.53/1-healthy Skin AC3-11-13_10.08.53.csv')
+C1_SPT.columns = colunm
+
+D2_SPT = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/SPT/2D/Images/2013-11-13_13.05.11/1-healthy Skin AC3-11-13_13.05.11.csv')
+D2_SPT.columns = colunm
+
+#%% DPT1
+C2_DPT1 = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/DPT/2CBurn/Images/2013-11-13_12.48.08/1-healthy Skin AC3-11-13_12.48.08.csv')
+C2_DPT1.columns = colunm
+
+#%% DPT2
+D1_DPT2 = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/DPT/1D/Images/2013-11-13_10.20.26/1-healthy Skin AC3-11-13_10.20.26.csv')
+D1_DPT2.columns = colunm
+
+D1_1hr = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/DPT/1D1hr/Images/2013-11-13_11.14.50/3 - Burn Tissue AC3-11-13_11.14.50.csv')
+D1_1hr.columns = colunm
+
+
+A1_DPT2 = pd.read_csv('C:/Users/Weizhi/Desktop/November ROI Drawings_Rachit/DPT/2A/Images/2013-11-13_11.57.49/1-healthy Skin AC3-11-13_11.57.49.csv')
+A1_DPT2.columns = colunm
+
+def RemoveZeros(df):
+    return df[(df.T!=0).any()]
+#%%
+A1_health = RemoveZeros(A1_health)
+B2_health = RemoveZeros(B2_health)
+
+health_control = pd.concat([A1_health, B2_health], ignore_index=True)
+#%%
+B1_SPT = RemoveZeros(B1_SPT)
+C1_SPT = RemoveZeros(C1_SPT)
+D2_SPT = RemoveZeros(D2_SPT)
+
+SPT = pd.concat([B1_SPT, C1_SPT,D2_SPT], ignore_index=True)
+
+#%%
+C2_DPT1 = RemoveZeros(C2_DPT1)
+DPT1 = C2_DPT1
+#%%
+D1_DPT2 = RemoveZeros(D1_DPT2)
+A1_DPT2 = RemoveZeros(A1_DPT2)
+
+DTP2 = pd.concat([D1_DPT2, A1_DPT2], ignore_index=True)
+#%%
+A1_1hr = RemoveZeros(A1_1hr)
+B1_1hr = RemoveZeros(B1_1hr)
+D1_1hr = RemoveZeros(D1_1hr)
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+plt.figure()
+plt.plot(np.arange(8),health_control.mean(axis=0))
+plt.xticks(np.arange(8),colunm)
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+plt.close('all')
+plt.figure()
+
+plt.errorbar(np.arange(8),health_control.mean(axis=0),yerr=[health_control.mean(axis=0)-health_control.std(axis=0), health_control.mean(axis=0)+health_control.std(axis=0)],ecolor= 'r',label='Health',fmt ='-o')
+
+plt.errorbar(np.arange(8),SPT.mean(axis=0),yerr=[SPT.mean(axis=0)-SPT.std(axis=0),SPT.mean(axis=0)+SPT.std(axis=0)],ecolor= 'b',label = 'SPT',fmt='*')
+plt.errorbar(np.arange(8),DPT1.mean(axis=0),yerr=[DPT1.mean(axis=0)-DPT1.std(axis=0),DPT1.mean(axis=0)+DPT1.std(axis=0)],ecolor= 'y',label='DPT1')
+plt.errorbar(np.arange(8),DTP2.mean(axis=0),yerr=[DTP2.mean(axis=0)-DTP2.std(axis=0),DTP2.mean(axis=0)-DTP2.std(axis=0)],ecolor= 'k',label = 'DPT2')
+plt.xticks(np.arange(8),colunm)
+plt.legend(loc='lower right', numpoints=1)
+
+plt.title('Comparison: Health, SPT, DPT1, DPT2')
+
+plt.figure()
+
+plt.errorbar(np.arange(8),A1_health.mean(axis=0),yerr=[],ecolor= 'r',label='Health 1A')
+plt.errorbar(np.arange(8),A1_1hr.mean(axis=0),yerr=[],ecolor= 'b',label = 'Health 1A_1hr')
+
+plt.errorbar(np.arange(8),B1_SPT.mean(axis=0),yerr=[],ecolor= 'y',label='SPT 1B')
+plt.errorbar(np.arange(8),B1_1hr.mean(axis=0),yerr=[],ecolor= 'k',label = 'SPT 1B_1hr')
+
+plt.errorbar(np.arange(8),D1_DPT2.mean(axis=0),yerr=[],ecolor= 'g',label='DPT2 1D')
+plt.errorbar(np.arange(8),D1_1hr.mean(axis=0),yerr=[],ecolor= 'm',label = 'DPT2 1D_1hr')
+
+
+plt.xticks(np.arange(8),colunm)
+plt.legend(loc='top right', numpoints=1)
+plt.title('Comparison: Burn, Burn 1HR')
+
+
+
+
+plt.figure()
+
+Health_abs = A1_health .mean(axis=0)-A1_1hr.mean(axis=0)
+SPT_abs = B1_SPT.mean(axis=0)- B1_1hr.mean(axis=0)
+DPT2 = D1_DPT2.mean(axis=0) - D1_1hr.mean(axis=0)
+
+plt.errorbar(np.arange(8),Health_abs,yerr=None, xerr=None,ecolor= 'b',label = 'Health Changing')
+
+plt.errorbar(np.arange(8),SPT_abs,yerr=None, xerr=None,ecolor= 'y',label='SPT Changing')
+plt.errorbar(np.arange(8),DPT2,yerr=None, xerr=None,ecolor= 'k',label = 'DPT2 Changing')
+
+plt.xticks(np.arange(8),colunm)
+plt.legend(loc='top right', numpoints=1)
+plt.title('Changing: Burn, Burn 1HR')
