@@ -1,0 +1,112 @@
+"""
+Created on Thu Jul 24 21:46:08 2014
+
+@author: Weizhi
+"""
+
+import numpy as np
+import os
+
+# loading the data
+
+path = 'G:\\MSI different pig ect\\Nov Data Analysis\\'    
+files= os.listdir('G:\MSI different pig ect\Nov Data Analysis')  
+ # random select one file
+  # compare the AC and DC file 
+import pandas as pd
+colunm = ['420 nm','515 nm','542 nm','629 nm','669 nm', '750 nm','860 nm','972 nm']
+
+
+indexTraining = int(len(files))
+Data_map = {}
+
+name = []
+
+for i in range(len(files)):
+    name.append(files[i].split('.')[0])
+
+data = np.zeros((indexTraining),dtype=np.object)            
+for i in range(indexTraining):
+    pd_name = files[i]  
+    path_loc = path + files[i]
+    data[i] = pd.read_csv(path_loc)
+    data[i]=data[i][(data[i].T!=0).any()]
+    Data_map[name[i]] = data[i]
+
+
+#%% Create DPT data, burn surface VS Burn health, 1st Burn VS 1st Wb, 2nd Burn VS 2nd WB, 3rd Burn VS 3rd WB
+
+
+#%% Health
+burn_burn = pd.concat([Data_map['2A_Burn_Origial'],Data_map['2C_Burn_Origal']],ignore_index=True)
+burn_health = pd.concat([Data_map['2A_Health_Control'],Data_map['2C_Health_Control']],ignore_index = True)
+
+#%% 1st cut
+first_Burn = pd.concat([Data_map['2A_1st_Burn'],Data_map['2C_1st_Burn']],ignore_index=True)
+first_WB = pd.concat([Data_map['2A_1st_WB'],Data_map['2C_1st_WB']],ignore_index=True)
+
+#%% 2nd cut
+second_Burn = pd.concat([Data_map['2A_2nd_Burn'],Data_map['2C_2nd_Burn']],ignore_index=True)
+second_WB = pd.concat([Data_map['2A_2nd_WB'],Data_map['2C_2nd_WB']],ignore_index=True)
+
+#%% 3rd cut
+third_Burn = pd.concat([Data_map['2A_3rd_Burn'],Data_map['2C_3rd_Burn']],ignore_index=True)
+third_WB = pd.concat([Data_map['2A_3rd_WB'],Data_map['2C_3rd_WB']],ignore_index=True)
+
+
+#plot figure 4: different bu
+import matplotlib.pyplot as plt
+import numpy as np
+plt.figure()
+
+plt.errorbar(np.arange(8),burn_burn.mean(axis=0),yerr=None,ecolor= 'r',label='burn_burn')
+plt.errorbar(np.arange(8),burn_health.mean(axis=0),yerr=None,ecolor= 'b',label = 'burn_health')
+
+plt.errorbar(np.arange(8),first_Burn.mean(axis=0),yerr=None,ecolor= 'y',label='first_Burn')
+plt.errorbar(np.arange(8),first_WB.mean(axis=0),yerr=None,ecolor= 'k',label = 'first_WB')
+
+plt.errorbar(np.arange(8),second_Burn.mean(axis=0),yerr=None,ecolor= 'g',label='second_Burn')
+plt.errorbar(np.arange(8),second_WB.mean(axis=0),yerr=None,ecolor= 'm',label = 'second_WB')
+
+plt.errorbar(np.arange(8),third_Burn.mean(axis=0),yerr=None,ecolor= 'w',label='third_Burn')
+plt.errorbar(np.arange(8),third_WB.mean(axis=0),yerr=None,ecolor= 'c',label = 'third_WB')
+
+plt.xticks(np.arange(8),colunm)
+plt.legend(loc='top right', numpoints=1)
+plt.title('Comparison: DPT, 2A, 2C, Burn, helath depth')
+
+
+#%% Figure 4: Spectral Profiles of excess excision layer with healthy excision layer.
+stop_1 = Data_map['2A_3rd_Burn']
+excess_1 = Data_map['2A_4th_Burn']
+
+stop_2 = Data_map['2B_Health']
+excess_2 = Data_map['2B_1hr']
+
+stop_3 = Data_map['2C_1st_Burn']
+excess_3_1 = Data_map['2C_2nd_Burn']
+excess_3_2 = Data_map['2C_3rd_Burn']
+
+stop_4 = Data_map['2D_2nd_Burn']
+excess_4 = Data_map['2D_3rd_Burn']
+
+#%% Plot the excess layers
+
+
+plt.figure()
+
+plt.errorbar(np.arange(8),stop_1.mean(axis=0),yerr=None,ecolor= 'r',label='2A Stop')
+plt.errorbar(np.arange(8),excess_1.mean(axis=0),yerr=None,ecolor= 'b',label = '2A excess')
+
+plt.errorbar(np.arange(8),stop_2.mean(axis=0),yerr=None,ecolor= 'y',label='2B Health')
+plt.errorbar(np.arange(8),excess_2.mean(axis=0),yerr=None,ecolor= 'k',label = '2B Health excess')
+
+plt.errorbar(np.arange(8),stop_3.mean(axis=0),yerr=None,ecolor= 'g',label='2C stop')
+plt.errorbar(np.arange(8),excess_3_1.mean(axis=0),yerr=None,ecolor= 'm',label = '2C excess')
+
+plt.errorbar(np.arange(8),stop_4.mean(axis=0),yerr=None,ecolor= 'w',label='2D stop')
+plt.errorbar(np.arange(8),excess_4.mean(axis=0),yerr=None,ecolor= 'c',label = '2D excess')
+
+plt.xticks(np.arange(8),colunm)
+plt.legend(loc='top right', numpoints=1)
+plt.title('Comparison: burn depth (Stop VS Excess)')
