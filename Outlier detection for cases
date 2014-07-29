@@ -1,0 +1,100 @@
+ function [DataTrainSet DataTestSet] = DataSeperation(DataSet)
+
+% DataSet = DataSetHealthA;
+
+mean_data = zeros(size(DataSet,2),8);
+std_data = zeros(size(DataSet,2),8);
+
+for i = 1:size(DataSet,2)
+    
+    mean_data(i,:) = mean(DataSet{i});
+    std_data(i,:) = std(DataSet{i});
+    
+end
+%% Calculate the distance
+
+m = size(DataSet,2);
+mid_inx = ceil(m/2);
+[B,I] = sort(mean_data);
+
+distance = mean_data - repmat(B(mid_inx,:),m,1);
+
+
+max_value = std_data(mid_inx,:)*3;
+min_value = -std_data(mid_inx,:)*3;
+
+comp = zeros(m,8);
+for i = 1:m
+    for j = 1:8
+        
+        if distance(i,j)>min_value(1,j) & distance(i,j)<max_value(1,j)
+            
+            comp(i,j) = 1;
+        else
+            comp(i,j) = 0;
+      
+        end
+             
+    end
+    
+    
+end
+
+%% remove the index
+Index = find(sum(comp,2)>=4);
+for i = 1:size(Index)
+    
+    DataSet_new{i} = DataSet{Index(i)};
+      
+end
+
+
+%%
+
+m = size(DataSet_new,2);
+
+mTrain = ceil(m*0.6);
+% mTest = m - mTrain;
+%% Random Choose Groups
+mTrainIndex = datasample(1:m,mTrain);
+fullSample = [1:m];
+
+mTestIndex = setdiff(fullSample,mTrainIndex);
+
+%% Get the data set
+ DataTrainSet = [];
+for i = 1:mTrain
+   
+    Data = DataSet_new{mTrainIndex(i)};
+    
+    DataTrainSet = vertcat(DataTrainSet,Data);
+    
+    
+    
+end
+
+
+ DataTestSet = [];
+for i = 1:size(mTestIndex,2)
+   
+    Data = DataSet_new{mTestIndex(i)};
+    
+    DataTestSet = vertcat( DataTestSet,Data);
+    
+    
+    
+end
+% figure;boxplot(DataTrainSet)
+clear mTrainIndex
+clear fullSample
+clear mTestIndex
+
+ end
+
+
+
+
+
+
+
+
