@@ -1,0 +1,141 @@
+
+function TrainingData = removeOutlier(data,number,type,caseName,SavePath,dirpath)
+% number = size(HealthTrainSetA,1);
+% type = 'Healthy';
+% data = HealthTrainSetA;
+
+%%
+% 
+%  figure;
+% gscatter(data(:,2),data(:,8));
+% xlabel('Wavelength-542 nm')
+% ylabel('Wavelength-860 nm')
+%% Not using all the data, using half again
+MedData = datasample(data,floor(size(data,1)));
+
+[B,I] = sort(MedData);
+m = size(MedData,1);
+mid_inx = ceil(m/2);
+%% Resolution is 20%
+resolution = ceil((size(MedData,1))*0.2);
+%% Get the mean
+mid_mean = median(B(mid_inx-floor(resolution/2):mid_inx+ floor(resolution/2),:));
+mid_std =     std(B(mid_inx-floor(resolution/2):mid_inx+ floor(resolution/2),:));
+
+
+%% Calculate the distance of the data
+Dist = zeros(1,m);
+for i = 1:m
+    Dist(1,i) = sum((MedData(i,:)-mid_mean).^2,2);
+       
+end
+
+%% Get the mean of dist
+[B,I] = sort(Dist);
+
+% TrainingData = B(1:number);
+if size(I,2)>2000*10
+   
+    Data.select = MedData(I(1:size(I,2)*0.1),:);
+
+
+else
+    Data.select = MedData(I(1:size(I,2)*0.5),:);
+    
+end
+%% Find the centroid
+
+Data.draw = vertcat(MedData,mid_mean,Data.select);
+Data.GroupDrawing = [repmat(sprintf(type),size(MedData,1),1);
+         
+                     repmat(sprintf('centori'),size(mid_mean,1),1);
+                     repmat(sprintf('selecte'),size(Data.select,1),1)];
+
+
+figure;
+gscatter(Data.draw(:,2),Data.draw(:,8),Data.GroupDrawing);
+
+xlabel('Wavelength-542 nm')
+ylabel('Wavelength-860 nm')
+
+cd (SavePath)
+title([caseName type])
+titleOne = sprintf( '%s Color classifier output.',[caseName type]);
+saveas(gcf,strcat(titleOne,'png'))
+
+
+%% Create the model
+
+
+
+
+
+data.test = MedData;
+data.training = Data.select;
+data.group = repmat(sprintf('selecte'),size(Data.select,1),1);
+
+%% denstiy estimation to get the data
+data.size = size(MedData,1);
+data.comp = zeros(data.size,8);
+for j = 1:8
+
+
+data.mean = mean(data.training(:,j));
+data.std = 3*std(data.training(:,j));
+ for i = 1:data.size
+    if abs(data.test(i,j) - data.mean)<=data.std;
+     data.comp(i,j) = 1;
+     
+     else 
+     data.comp(i,j) = 0;
+ 
+ 
+    end
+
+  end
+
+end
+Index = find(sum(data.comp,2)>=7);
+
+TrainingData = MedData(Index,:);
+cd (dirpath)
+%% Get the training data
+
+
+
+
+
+
+
+%%
+% figure;hist(data.training(:,1),100)
+% pd = fitdist(data.training(:,1),'Normal')
+% x_values = min(data.training(:,1)):1:max(data.training(:,1));
+% pdf = pdf(pd,x_values);
+% 
+% figure;
+% 
+% plot(x_values,pdf,'LineWidth',2)
+
+%% hold on
+% 
+% th = 0:pi/50:2*pi;
+% xunit = 3*(mean((B(1:number))))* cos(th) + mid_mean(:,2);
+% yunit = 3*(mean((B(1:number))))* sin(th) + mid_mean(:,8);
+% h = plot(xunit, yunit,'r');
+% 
+% 
+% %% Get the training data
+% 
+% 
+% diff = Dist - 10*std(B(1:number));
+% 
+% index = find(diff<0);
+% 
+% 
+% 
+% TrainingData = MedData(index,:);
+
+%% finding the data in a circle:
+
+
