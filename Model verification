@@ -1,0 +1,253 @@
+%%
+%% loading data
+clear all
+close all
+
+%% Filter A
+
+dirpath = 'L:\5.1.2 Ground Truth Data Organization(The Whole Cases)';
+cd (dirpath)
+ TrainingDataPath = 'L:\MSI May test for mix-wavelength database\Database of pig2 and pig4'
+DataSetHealthA = LoadingData([TrainingDataPath '\1.Health Skin']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\healthy skin
+DataSetbloodA = LoadingData([TrainingDataPath '\6.Blood']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\blood
+DataSetFullInjuryA = LoadingData([TrainingDataPath '\4.Greater Than 1mm']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\full section injury
+DataSetWoundBedA = LoadingData([TrainingDataPath '\2.Health Wound Bed']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\healthy wound bed
+DataSetHyperemicA = LoadingData([TrainingDataPath '\5.Hyperemia']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\hyperermia
+DataSetParticalA = LoadingData([TrainingDataPath '\3.Less Than 1mm']);
+
+
+%% 60% case as trianing data, 40% as testing data
+
+[HealthTrainSetA, HealthTestSetA1] = DataSeperation(DataSetHealthA);
+[BloodTrainSetA, BloodTestSetAA1] = DataSeperation(DataSetbloodA);
+
+[FullInjuryTrainSetA, FullInjuryTestSetA1] = DataSeperation(DataSetFullInjuryA);
+[WoundBedTrainSetA, WoundBedTestSetA1] = DataSeperation(DataSetWoundBedA);
+
+[HyperemicTrainSetA ,HyperemicTestSetA1] = DataSeperation(DataSetHyperemicA);
+[ParticalTrainSetA ,ParticalTestSetA1] = DataSeperation(DataSetParticalA);
+
+
+
+%% Remove outliers
+SavePath = 'L:\Output\Algorithm transfer';
+caseName = 'rememove outliers'
+Para.caseName = caseName;
+Para.SavePath = SavePath;
+Para.title = [caseName 'Outliers'];
+cd (dirpath)
+number = 2000;
+HealthTrainSet = removeOutlier(HealthTrainSetA,number,'healthy',Para.caseName,Para.SavePath,dirpath);
+BloodTrainSet = removeOutlier(BloodTrainSetA,number,'Blood--',Para.caseName,Para.SavePath,dirpath);
+FullInjuryTrainSet= removeOutlier(FullInjuryTrainSetA,number,'FullInj',Para.caseName,Para.SavePath,dirpath);
+WoundBedTrainSet= removeOutlier(WoundBedTrainSetA,number,'WoundBe',Para.caseName,Para.SavePath,dirpath);
+HyperemicTrainSet= removeOutlier(HyperemicTrainSetA,number,'Hyperem',Para.caseName,Para.SavePath,dirpath);
+ParticalTrainSet= removeOutlier(ParticalTrainSetA,number,'Partica',Para.caseName,Para.SavePath,dirpath);
+
+%% B
+ TrainingDataPath = 'L:\5.1.2 Ground Truth Data Organization(The Whole Cases)\Database of Best Wavelength\Database of each pig\Pig1'
+DataSetHealthA = LoadingData([TrainingDataPath '\1.Health Skin']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\healthy skin
+DataSetbloodA = LoadingData([TrainingDataPath '\6.Blood']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\blood
+DataSetFullInjuryA = LoadingData([TrainingDataPath '\4.Greater Than 1mm']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\full section injury
+DataSetWoundBedA = LoadingData([TrainingDataPath '\2.Health Wound Bed']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\healthy wound bed
+DataSetHyperemicA = LoadingData([TrainingDataPath '\5.Hyperemia']);
+% C:\Users\SpectralMD2\Desktop\database for step 6\WithPO A+B\hyperermia
+DataSetParticalA = LoadingData([TrainingDataPath '\3.Less Than 1mm']);
+
+%%
+[HealthTrainSetA1, HealthTestSetA] = DataSeperation(DataSetHealthA);
+[BloodTrainSetA1, BloodTestSetAA] = DataSeperation(DataSetbloodA);
+
+[FullInjuryTrainSetA1, FullInjuryTestSetA] = DataSeperation(DataSetFullInjuryA);
+[WoundBedTrainSetA1, WoundBedTestSetA] = DataSeperation(DataSetWoundBedA);
+
+[HyperemicTrainSetA1 ,HyperemicTestSetA] = DataSeperation(DataSetHyperemicA);
+[ParticalTrainSetA1 ,ParticalTestSetA] = DataSeperation(DataSetParticalA);
+
+
+
+
+
+
+
+
+%% test 
+cd (dirpath)
+number = 2000;
+HealthTrainSet1 = removeOutlier(HealthTrainSetA1,number,'healthy',Para.caseName,Para.SavePath,dirpath);
+BloodTrainSet1 = removeOutlier(BloodTrainSetA1,number,'Blood--',Para.caseName,Para.SavePath,dirpath);
+FullInjuryTrainSet1= removeOutlier(FullInjuryTrainSetA1,number,'FullInj',Para.caseName,Para.SavePath,dirpath);
+WoundBedTrainSet1= removeOutlier(WoundBedTrainSetA1,number,'WoundBe',Para.caseName,Para.SavePath,dirpath);
+HyperemicTrainSet1= removeOutlier(HyperemicTrainSetA1,number,'Hyperem',Para.caseName,Para.SavePath,dirpath);
+ParticalTrainSet1= removeOutlier(ParticalTrainSetA1,number,'Partica',Para.caseName,Para.SavePath,dirpath);
+
+
+
+%% not remove outliers
+cd ('L:\5.1.2 Ground Truth Data Organization(The Whole Cases)')
+TrainingNumber = 3000;
+SavePath = 'L:\Output\Algorithm transfer'
+caseName = 'rememove outliers'
+DataA = GetTrainingData(HealthTrainSet,BloodTrainSet,FullInjuryTrainSet,WoundBedTrainSet,HyperemicTrainSet,ParticalTrainSet,TrainingNumber,SavePath,[caseName 'training']);
+
+DataB = GetTrainingData(HealthTrainSet1,BloodTrainSet1,FullInjuryTrainSet1,WoundBedTrainSet1,HyperemicTrainSet1,ParticalTrainSet1,TrainingNumber,SavePath,[caseName 'training']);
+cd ('L:\5.1.2 Ground Truth Data Organization(The Whole Cases)')
+%% scaling the training data
+cd 'C:\Users\SpectralMD2\Desktop\SMD_Software\Image Processing\Algorithm Development\MSI Project\MSI Matlab Version 1'
+DataA.data= scaling(DataA.TrainingData);
+DataA.TrainingData = DataA.data(:,:,2);
+
+DataB.data= scaling(DataB.TrainingData);
+DataB.TrainingData = DataB.data(:,:,2);
+
+%% do the modeling
+disp 'knn'
+
+mdl = ClassificationKNN.fit(DataA.TrainingData,DataA.Group,'NumNeighbors',11);  %KNN classifier
+[L1,error_Knn,CA_knn,CB_knn] = algorithmtrans(mdl,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+
+disp '                        '
+disp '                        '
+disp '                        '
+
+%% decison tree
+
+cd 'K:\5.1.2 Ground Truth Data Organization(The Whole Cases)'
+disp 'decision tree'
+
+t = fitctree(zscore(DataA.TrainingData),DataA.Group);
+
+[L2,error_tree,CA_tree,CB_tree] = algorithmtrans(t,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+
+disp '                        '
+disp '                        '
+disp '                        '
+%% LDA 
+
+disp 'Discriminant Analysis'
+Discriminant = fitcdiscr(zscore(DataA.TrainingData),DataA.Group);
+
+[L3,error_LDA,CA_LDA,CB_LDA] = algorithmtrans(Discriminant,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+disp '                        '
+disp '                        '
+disp '                        '
+%% QDA 
+
+disp 'quadratic Discriminant Analysis'
+Discriminant_2 = fitcdiscr(DataA.TrainingData,DataA.Group,'DiscrimType','quadratic');
+
+[L4,error_QDA,CA_QDA,CB_QDA] = algorithmtrans(Discriminant_2,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+
+
+disp '                        '
+disp '                        '
+disp '                        '
+%% 
+
+% disp 'diagLinear Discriminant Analysis'
+% Discriminant = fitcdiscr(DataA.TrainingData,DataA.Group,'DiscrimType','diagLinear');
+% 
+% [error_D,CA_knn,CB_knn] = algorithmtrans(Discriminant,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber)
+% disp '                        '
+% disp '                        '
+% disp '                        '
+%% 
+
+disp 'Weights--Linear Discriminant Analysis'
+Discriminant = fitcdiscr(DataA.TrainingData,DataA.Group,'Weights',DataA.Weights);
+
+[L5,error_Weights_LDA,CA_Weights_LDA,CB_Weights_LDA] = algorithmtrans(Discriminant,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+disp '                        '
+disp '                        '
+disp '                        '
+
+%% Bagging
+
+
+disp 'Bagging -- Ensemple bagging KNN'
+ens = fitensemble(DataA.TrainingData,DataA.Group,'Subspace',20,'KNN','type','classification');
+
+[L6,error_ens_t,CA_ens_t,CB_ens_t] = algorithmtrans(ens,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+disp '                        '
+disp '                        '
+disp '                        '
+%% bagging decision tree
+
+disp 'Bagging -- Ensemple bagging KNN'
+ens = fitensemble(DataA.TrainingData,DataA.Group,'Subspace',20,'KNN','type','classification');
+
+[L7,error_knn,CA_ens_knn,CB_ens_knn] = algorithmtrans(ens,DataA.TrainingData,DataB.TrainingData,DataA.Group,DataB.Group,TrainingNumber);
+disp '                        '
+disp '                        '
+disp '                        '
+%% Filter B
+
+%%
+
+
+
+
+
+% [error_Knn,CA_knn,CB_knn]
+% [error_tree,CA_tree,CB_tree]
+% 
+% [error_LDA,CA_LDA,CB_LDA]
+% 
+% [error_QDA,CA_QDA,CB_QDA]
+% 
+% [error_Weights_LDA,CA_Weights_LDA,CB_Weights_LDA]
+% 
+% [error_ens,CA_ens,CB_ens]
+%% for training error
+disp 'error_Knn error_tree error_LDA error_QDA error_Weights_LDA error_ens_t error_knn'
+error = [error_Knn error_tree error_LDA error_QDA error_Weights_LDA error_ens_t error_knn]
+error = [1-error_Knn 1-error_QDA 1-error_ens_t 1-error_knn]
+sum(error,2)/size(error,2)
+%% for testing error
+L = [1-L1  1-L4  1-L6 1-L7]
+sum(L,2)/size(L,2)
+
+% CA_knn
+% CB_knn
+% % % 
+% % % CA_tree
+% % % CB_tree
+% % % 
+% % % CA_LDA
+% % % 
+% % % CB_LDA
+% % % 
+% CA_QDA
+% CB_QDA
+% % % 
+% % % 
+% % % 
+% % % CA_Weights_LDA
+% % % CB_Weights_LDA
+% % % 
+% % % 
+% % % 
+% CA_ens_t
+% CB_ens_t
+% % 
+% CA_ens_knn
+% 
+% CB_ens_knn
+
+
+
+
+
+
+
+
+
