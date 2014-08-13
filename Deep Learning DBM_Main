@@ -1,0 +1,49 @@
+% this code is based on the https://github.com/rasmusbergpalm/DeepLearnToolbox
+% I just used my code to test and learn this DBN algorithm
+% Please do the comparision between my code and the ahthor' code. 
+
+
+
+train_x = DataB.TrainingData;
+test_x  = DataA.TrainingData;
+train_y = labeltransform(DataB.Group');
+test_y  = labeltransform(DataA.Group');
+
+
+
+%%  ex1 train a 100 hidden unit RBM and visualize its weights
+rand('state',0)
+dbn.sizes = [100];
+opts.numepochs =   1;
+opts.batchsize = 100;
+opts.momentum  =   0;
+opts.alpha     =   1;
+dbn = dbnsetup(dbn, train_x, opts);
+dbn = dbntrain(dbn, train_x, opts);
+figure; visualize(dbn.rbm{1}.W');   %  Visualize the RBM weights
+
+%%  ex2 train a 100-100 hidden unit DBN and use its weights to initialize a NN
+rand('state',0)
+%train dbn
+dbn.sizes = [100 100];
+opts.numepochs =   1;
+opts.batchsize = 100;
+opts.momentum  =   0;
+opts.alpha     =   1;
+dbn = dbnsetup(dbn, train_x, opts);
+dbn = dbntrain(dbn, train_x, opts);
+
+%unfold dbn to nn
+% nn = dbnunfoldtonn(dbn, 10);
+% change the groups to fit your data
+nn = dbnunfoldtonn(dbn, 6);
+nn.activation_function = 'sigm';
+
+%train nn
+opts.numepochs =  1;
+opts.batchsize = 100;
+nn = nntrain(nn, train_x, train_y, opts);
+[er, bad] = nntest(nn, test_x, test_y);
+
+assert(er < 0.10, 'Too big error');
+
