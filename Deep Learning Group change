@@ -1,0 +1,21 @@
+function test = labeltransform(test_y)
+
+% test = zeros(size(test_y,2),6);
+for i = 1:size(test_y,1)
+    switch (test_y(i,1))
+        case 1
+            test(i,1) = 1;
+        case 2
+            test(i,2) = 2;
+        case 3
+            test(i,3) = 3;
+        case 4
+            test(i,4) =4;
+        case 5
+            test(i,5) =5;
+        case 6
+            test(i,6) = 6;           
+    end
+ 
+
+end
