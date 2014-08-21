@@ -1,0 +1,457 @@
+%% Ground Truth
+% Select n characteristics (basiclly now there are Health Tissue, ShadowBurn, MediumBurn, DeepBurn and Blood) 
+% save the training data into five files or less. 
+% By Weizhi Li
+% Email: weizhili2014@gmail.com
+% The right one 04/11/2014
+clear all;
+clc;
+close all;
+
+Dic = 'E:\MSI\DataPath\Pig1\Pig1_1A___Burn_2';
+cd (Dic)
+listing = dir;
+
+[listing] = dir;
+
+% filename = listing(4).name;
+fileSave = listing(4).name;
+frame_temp = imread(fileSave);
+size(frame_temp);
+Data = zeros(size(frame_temp,1),size(frame_temp,2),8);
+
+% record the regions
+Image2 = zeros(size(frame_temp,1),size(frame_temp,2));
+filename = listing(3).name;
+Image = imread(filename);
+
+
+frame_number = 1;
+
+for i=4:1:size(listing,1)
+    
+filename = listing(i).name;
+frame_temp = imread(filename);
+Data(:,:,frame_number) = single(frame_temp);
+frame_number = frame_number + 1;
+
+
+end
+
+%%
+DataN =Data./(2^(4));
+clear Data;
+% 
+% 
+% 
+% clear Data;
+% 
+% 
+% f = warndlg('You should choose an area by using four points.', 'A Warning Dialog');
+% 
+% 
+% drawnow     % Necessary to print the message
+% waitfor(f);
+% 
+% 
+% DataN = DataN(1:2:size(DataN,1),1:2:size(DataN,2),:);
+% 
+% ImageShow = DataN(:,:,3)./max(max(DataN(:,:,3)));
+%  figure;imshow(ImageShow);
+%  [x1, y1] = ginput(4);
+% 
+% disp('You have finished choosing');
+% 
+% 
+% RawData = double(DataN(min(y1):max(y1),min(x1):max(x1),1:8));
+
+%% Change the order of pixel
+
+RawData = DataN(:,:,1:8);
+Data_DW = DataN(:,:,8:size(listing,1)-3);
+clear DataN;
+%% drawing region of interesting
+%% old code
+
+% figure; imshow(Image);
+% 
+% % hFH = imrect();
+% hFH = imfreehand();
+% binaryImage = hFH.createMask();
+% 
+% [X Y] = find(binaryImage()==0);
+% [X1 Y1] = find(binaryImage()==1);
+% for i = 1:size(X,1)
+% Image(X(i),Y(i),:) =0;
+% FrameMatrix_DownSampleNew(X(i),Y(i),:) = 0;
+% FrameMatrixAC(X(i),Y(i),:) = 0;
+% data.FrameMatrix_filtered(X(i),Y(i),:) = 0;
+% end
+
+
+
+%% Get the deepVies features
+cd 'C:\Users\Valued Customer\Desktop\Code for drawing'
+fprintf('\n\n© Spectral MD 2010-2012\n\n')
+data.useGPU = false;
+% Begin timer
+start_execution = tic();
+
+% Initialization of all the variables
+data = PPG_variables;
+
+data.FrameMatrix(data.row_size_initialImage, data.column_size_initialImage, data.frames_initialImage) = uint16(0);
+data.FrameMatrix = Data_DW.*(2^(6));  
+[data.row_size,data.column_size,data.L] = size(data.FrameMatrix);
+clear Data_DW;
+%Average frame matrix
+start_average = tic();
+data = averageFrameMatrixImage(data);
+end_average = toc(start_average);
+
+% Remove the FrameMatrix variable saves .8Gb of RAM
+% data = rmfield(data,'FrameMatrix');
+
+% Compute Fourier transform for entire matrix_type
+fftProductionTime = tic();
+data = generatePPGfftArrays_deconv(data);
+end_fftCalc = toc(fftProductionTime);
+
+clear data.FrameMatrix;
+startCalculations = tic();
+% dataFeature = reshape(data.FrameMatrix_filtered,size(data.FrameMatrix_filtered,1)*size(data.FrameMatrix_filtered,2),800);
+% Features = zeros(size(dataFeature,1),23);
+
+
+% [X Y] = find(binaryImage()==0);
+% [X1 Y1] = find(binaryImage()==1);
+% figure; plot(dataFeature(X1(1)*Y1(1),:))
+% 
+% figure;plot(reshape(data.FrameMatrix_filtered(X1(1),Y1(1),:),1,800))
+% GPUData = gpuArray(dataFeature);
+% startCalculations = tic();
+% for i = 1:size(X1,1)
+% % i = 1;
+% Features(X1(i)*Y1(i),:) = load_osprey(GPUData(X1(i)*Y1(i),:),30);
+% 
+% end
+% endOfCalculations = toc(startCalculations);
+% disp(['Total GPU Yang feature calculation/processing is ', num2str(endOfCalculations), ' seconds']);
+% %compute HR metrics on image
+% %% 
+% dataFeature
+% startCalculations = tic();
+% for i = 1:size(X1,1)
+% % i = 1;
+% Features(X1(i)*Y1(i),:) = load_osprey(dataFeature(X1(i)*Y1(i),:),30);
+% 
+% end
+% endOfCalculations = toc(startCalculations);
+% disp(['Total Yang feature calculation/processing is ', num2str(endOfCalculations), ' seconds']);
+
+%%
+[data] = computeHRmetrics(data);
+
+FrameMatrix_DownSampleTransform = RawData(1:data.fast_divisor:size(RawData,1),1:data.fast_divisor:size(RawData,2),:);
+
+FrameMatrix_DownSampleNew = zeros(size(FrameMatrix_DownSampleTransform,1),size(FrameMatrix_DownSampleTransform,2),8);
+%%
+% filter A: [one-420 Two-515 Three-542 Four-581 Five-601 Six-800 Seven-860 Eghit-971]
+% filter B: [one-475 Two-532 Three-560 Four-578 Five-726 Six-860 Seven-940  Eight-1064]
+% old filter x = [450 515 542 620 669 750 860 972];
+
+FrameMatrix_DownSampleNew(:,:,1) = FrameMatrix_DownSampleTransform(:,:,1);
+
+
+FrameMatrix_DownSampleNew(:,:,2) = FrameMatrix_DownSampleTransform(:,:,2);
+
+FrameMatrix_DownSampleNew(:,:,3) = FrameMatrix_DownSampleTransform(:,:,3);
+
+FrameMatrix_DownSampleNew(:,:,4) = FrameMatrix_DownSampleTransform(:,:,4);
+
+FrameMatrix_DownSampleNew(:,:,5) = FrameMatrix_DownSampleTransform(:,:,5);
+
+FrameMatrix_DownSampleNew(:,:,6) = FrameMatrix_DownSampleTransform(:,:,6);
+
+FrameMatrix_DownSampleNew(:,:,7) = FrameMatrix_DownSampleTransform(:,:,8);
+
+FrameMatrix_DownSampleNew(:,:,8) = FrameMatrix_DownSampleTransform(:,:,7);
+%%
+
+FrameMatrixAC = (FrameMatrix_DownSampleNew  - repmat(mean(FrameMatrix_DownSampleNew ,1),size(FrameMatrix_DownSampleNew ,1),1));
+%% Get the data
+
+
+
+Image = Image(1:2:size(Image,1),1:2:size(Image,2),:);
+%% save the featuers
+features = zeros(size(FrameMatrix_DownSampleTransform,1),size(FrameMatrix_DownSampleTransform,2),12);
+
+features(:,:,1:8) = FrameMatrix_DownSampleNew;
+features(:,:,9:12) = data.hr_metric_3dArray;
+FrameMatrix_DownSampleNew = features;
+
+
+features_AC = zeros(size(FrameMatrix_DownSampleTransform,1),size(FrameMatrix_DownSampleTransform,2),12);
+features_AC(:,:,1:8)  = FrameMatrixAC;
+FrameMatrixAC = features_AC;
+%% Generate flase RGB
+
+%  R = 0.6*FrameMatrixAC(:,:,5);
+%  G = 0.4*FrameMatrixAC(:,:,2);
+%  B = 0.2*FrameMatrixAC(:,:,1);
+% 
+%  Image = cat(3,R,G,B);
+% figure; imshow(Image);
+%% Drawing a rectangle:
+numberoffeature = 12;
+figure; imshow(Image);
+% hFH = imrect();
+hFH = imfreehand();
+binaryImage = hFH.createMask();
+
+[X Y] = find(binaryImage()==0);
+[X1 Y1] = find(binaryImage()==1);
+for i = 1:size(X,1)
+Image(X(i),Y(i),:) =0;
+FrameMatrix_DownSampleNew(X(i),Y(i),:) = 0;
+FrameMatrixAC(X(i),Y(i),:) = 0;
+data.FrameMatrix_filtered(X(i),Y(i),:) = 0;
+end
+
+DataFull = zeros(size(X1,1),numberoffeature);
+DataFull2 = zeros(size(X1,1),numberoffeature);
+
+for i = 1:size(X1,1)
+   a = [X1(i) Y1(i)];
+   DataFull(i,:) = reshape(FrameMatrix_DownSampleNew(a(1,1),a(1,2),:),1,numberoffeature);
+   DataFull2(i,:) = reshape(FrameMatrixAC(a(1,1),a(1,2),:),1,numberoffeature);
+           
+end
+  cd (Dic)              
+        ClassName0 = 'Mask of Image';
+        a  = FrameMatrix_DownSampleNew(:,:,1);
+        ClassName0=num2str(strcat(ClassName0,'--',Dic(end - 15:end)));
+        save(ClassName0,'a')
+       
+        NameClassOne = num2str(strcat(ClassName0,'.csv'));
+        csvwrite(NameClassOne,a)
+%%
+       ClassName1 = 'Full Data';
+        ClassName1=num2str(strcat(ClassName1,'--',Dic(end - 15:end)));
+      save(ClassName1,'DataFull')
+      
+      NameClassOne = num2str(strcat(ClassName1,'.csv'));
+      csvwrite(NameClassOne,DataFull)
+%%      
+       ClassName2 = 'Full AC Data';
+        ClassName2=num2str(strcat(ClassName2,'--',Dic(end - 15:end)));
+      save(ClassName2,'DataFull2')
+      NameClasstwo = num2str(strcat(ClassName2,'.csv'));
+      csvwrite(NameClasstwo,DataFull2)
+ cd 'C:\Users\Valued Customer\Desktop\Code for drawing'     
+%% color iamge for plotting
+figure;imshow(Image)
+
+
+%% get the meaning of different classes
+i = 'Y';
+j = 'Y';
+
+color = 0;
+ClassIndex = 0;
+ClassNumber = 0;
+numberClass = 0;
+while(i== 'Y')
+  ClassIndex = 1 + ClassIndex;
+    Classes = {'1-healthy Skin ';' 2-healthy wound bed ';' 3-Less Than 1mm ';' 4-Greater Than 1mm  ';'5-hyperemia';'6-blood'};
+% data = ['Allison Jones';'Development  ';'Phoenix      '];
+
+disp '1-healthy Skin, 2-healthy wound bed, 3-Less Than 1mm , 4-Greater Than 1mm, 5-hyperemia, 6-blood '
+disp 'Pleae enter the number associated with the class you want to draw:    '
+n = input('');
+ClassesName = Classes(n,:)
+ClassesNameAC = Classes(n,:);
+
+% disp 'PLEASE ENTER THE NUMBER OF CHARACTERISTICS:'
+% n = input('');
+%% Drawing
+% cd 'C:\Users\SpectralMD1\Desktop\Ground Truth Drawing'
+
+% PositionSave = zeros(512,512,4);
+ color = color + 10;
+  ClassNumber = ClassNumber + 1;
+  % J2 is the number of drawing in the same classes
+ J2 = 1;
+ PositionSave =cell(1);
+while(j=='Y')
+   
+
+hFH = imfreehand();
+% [x,y,key] = ginput(1);
+%   if key ==1
+
+% disp 'do you want to keep this Drawing Y/N  '
+% keep = input('');
+
+
+
+
+binaryImage = hFH.createMask();
+
+
+
+[PositionX PositionY] = find(binaryImage()==1);
+%[m, n] = size(temp_pos);
+
+[m n] = size(PositionX)
+temp_pos = zeros(m,2);
+temp_pos(:,1) = PositionX(:,1);
+temp_pos(:,2) = PositionY(:,1);
+
+PositionSave{J2} = temp_pos;
+
+numberOfPixels{i} = sum(binaryImage(:));
+
+
+
+%% Continue drawing in the same class
+% disp 'do you want to keep drawing in the same class?'
+
+prompt = 'do you want to keep drawing in the same class? [Y/N]';
+J3 = input(prompt,'s');
+   if(J3 == 'Y')
+       % J2 will increased by Y
+    J2 = J2 + 1;
+    j = 'Y';
+    
+   else 
+       %% save the image
+  j = J3;
+  
+  
+  ClassName=num2str(cell2mat(strcat(ClassesName,'__',Dic(end - 15:end))));
+  ClassNameAC=num2str(cell2mat(strcat(ClassesNameAC,'AC',Dic(end - 15:end))));
+   NumberClass = size(PositionSave,2);
+   numberClass = numberClass + NumberClass;
+   Sum = 0;
+   LocationIndex = zeros(1,NumberClass);
+   Index = ones(1,NumberClass).*ClassIndex;
+   %
+   b = zeros(NumberClass,2);
+   for k = 1:NumberClass
+       [m n] = size(PositionSave{k});
+   %    Position = PositionSave{k};
+       Sum = Sum + m;
+       LocationIndex(1,k) = m;
+       % get the index of region
+    %   b(k,:) = Position(ceil(m/2),:);
+   %    MaskIndex{ClassNumber} = {b};
+   end
+   % create the size to save data
+   Data = zeros(Sum,numberoffeature);
+   DataAC = zeros(Sum,numberoffeature);
+   Count = 0;
+%     textInserter = vision.TextInserter('%d','LocationSource','Input port','Color', [255, 255, 255],'FontSize', 24);
+% % %                   vision.MarkerInserter('Shape','Plus','BorderColor','white');
+%    J = step(textInserter, Image2, int32(Index),int32(b));
+    z = 0;
+    for k = 1:NumberClass
+      [m n] = size(PositionSave{k});
+      Position = PositionSave{k};
+%       b = Position(ceil(m/2),:);
+%       str = num2str(k);
+%       insertText(b(1,1),b(1,2),'str');
+     
+         for i = 1:m
+           a = Position(i,:);
+           Data(i+z,1:numberoffeature) = reshape(FrameMatrix_DownSampleNew(a(1,1),a(1,2),:),1,numberoffeature);
+           DataAC(i+z,:) = reshape(FrameMatrixAC(a(1,1),a(1,2),:),1,numberoffeature);
+           
+           Image2(a(1,1),a(1,2)) = color;
+          
+         end
+         
+        z = z + m;  
+         
+%         cd 'Dic'
+    end
+       cd (Dic)
+      save(ClassName,'Data')
+      NameClassOne = num2str(strcat(ClassName,'.csv'));
+      csvwrite(NameClassOne,Data)
+      
+      
+       save(ClassNameAC,'DataAC')
+      NameClassOne = num2str(strcat(ClassNameAC,'.csv'));
+      csvwrite(NameClassOne,DataAC)
+  
+    
+%     textInserter = vision.TextInserter('%d','LocationSource','Input port','Color', [255, 255, 255],'FontSize', 24);
+%     J = step(textInserter, I, int32([1 2 3 4]),int32([1 1; 500 1; 1 350; 500 350]));
+    
+
+  end 
+end
+  %%To Start Drawing a Different Class
+%    disp 'do you want to keep drawing new class, if yes, please enter Y, if not please enter N  '
+   prompt = 'Do you want to draw a different class? [Y/N]';
+  I2 = input(prompt,'s');
+   
+   if(I2 =='Y') 
+       i = 'Y';
+       j = 'Y';
+   else
+       i='N';
+       disp 'You are done drawing classes, now label the image.'; 
+   end
+   
+   
+   
+   
+
+end
+
+
+
+
+% Image3 = zeros(size(frame_temp,1),size(frame_temp,2));
+%     textInserter = vision.TextInserter('%d','LocationSource','Input port','Color', [255, 255, 255],'FontSize', 100);
+% % %                   vision.MarkerInserter('Shape','Plus','BorderColor','white');
+%    Image3 = step(textInserter, Image3, int32([3;3;3;5;5;5]),int32([1 1; 500 1; 1 600;100 100; 300 1; 600 1]));
+% 
+% figure;imagesc(Image3)
+% 
+% 
+% 
+figure;imagesc(Image2)
+% ClassIndex   numberClass
+
+     
+      ClassName4 = 'Indexl Data';
+      ClassName2=num2str(strcat(ClassName4,'--',Dic(end - 15:end)));
+      save(ClassName2,'Image2')
+      NameClasstwo = num2str(strcat(ClassName2,'.csv'));
+      csvwrite(NameClasstwo,Image2)
+
+%% Labeling the classes on the color-coded mask
+for i = 1: ClassIndex
+     Classes = {'1-healthy Skin ';' 2-healthy would bed ';' 3-Less Than 1mm ';' 4-Greater Than 1mm  ';'5-hyperemia';'6-blood'};
+% data = ['Allison Jones';'Development  ';'Phoenix      '];
+
+     disp '1-healthy Skin, 2-healthy would bed,  3-Less Than 1mm ; 4-Greater Than 1mm  , 5-hyperemia, 6-blood '
+    disp 'Pleae enter number and then click the color on teh image to label that class.'
+    n = input('');
+    ClassesName = Classes(n,:)
+  %  String = input(prompt,'s');
+    gtext(ClassesName,'BackgroundColor',[1 1 1])
+    
+end
+
+
+cd (Dic)
+Image0 = getframe(gcf);
+imwrite(Image0.cdata, 'Labled color image.jpg');     
+ close all; 
+ cd 'C:\Users\Valued Customer\Desktop\Code for drawing'
+% end
