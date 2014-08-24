@@ -1,0 +1,22 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+N = 9
+Error_1 = [90.35,91.35, 97.55, 95.20,57.42, 87.21,96.23, 98.18,98.18]
+myInt = 100
+Error = [x/myInt for x in Error_1]
+
+ind = np.arange(N)  # the x locations for the groups
+width = 0.35       # the width of the bars
+plt.figure()
+plt.hold(True)
+plt.bar(ind, Error, width)
+
+plt.plot(ind,Error,color = 'red')
+
+plt.ylabel('Accuracy of Model',fontsize = 20)
+name = ['Set A', 'Set B', 'Set AB', 'Set C','Set D','Set CD','Set C+PPG','Set ABCD','Set ABCD+PPG']
+plt.xticks(range(9),name,fontsize = 20)
+plt.title('Model Accuracy Comparision',fontsize = 20)
+#plt.xticks(ind+width)
+
